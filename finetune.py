@@ -2,25 +2,11 @@ import pytorch_lightning as pl
 import torch
 import torchmetrics as tm
 import torch.nn.functional as F
-import torch.nn as nn
-import numpy as np
-import sklearn
-import logging
+
 from einops import rearrange
-
-from torch.utils.data import DataLoader
-from sklearn.preprocessing import StandardScaler
-from sklearn.linear_model import RidgeClassifier
-from torch.nn.functional import softmax
 from typing import Any, Dict, List, Tuple, Type
-from torch import Tensor
-from torch.optim import Adam
-from torch.optim.optimizer import Optimizer
-from torchvision.transforms import Normalize
 
-from torchvision.transforms import Normalize
-from utilities import log_examples, embed_dataset, freeze_model, unfreeze_model
-from utilities import compute_encoded_mu_sig, check_unique_list
+from torch import Tensor
 from networks.models import LogisticRegression
 
 
@@ -74,7 +60,7 @@ class FineTune(pl.LightningModule):
         logits = self.forward(x)
         y_pred = logits.softmax(dim=-1)
         loss = F.cross_entropy(y_pred, y, label_smoothing=0.1 if self.freeze else 0)
-        self.log("finetune/train_loss", loss, on_step=False, on_epoch=True)
+        self.log("finetuning/train_loss", loss, on_step=False, on_epoch=True)
         return loss
 
     def validation_step(self, batch, batch_idx, dataloader_idx=0):
@@ -133,7 +119,7 @@ def run_finetuning(config, encoder, datamodule, logger):
     trainer = pl.Trainer(
         logger=logger,
         callbacks=[checkpoint],
-        max_epochs=config["n_epochs"],
+        max_epochs=config["finetune"]["n_epochs"],
         **config["trainer"],
     )
 
